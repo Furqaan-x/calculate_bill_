@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerSlab Calculate Bill</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #ffffff;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #000000;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            padding: 25px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            border: 1px solid #000000;
+        }
+        .container::before {
+            content: "🍂🍁";
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+        }
+        h1 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #000000;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        input:focus {
+            border-color: #555555;
+            outline: none;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        button {
+            padding: 12px 25px;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+            transition: background-color 0.3s, color 0.3s;
+            color: #000000;
+            background-color: #ffffff;
+        }
+        .calculate:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .reset {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .reset:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .slabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .slab {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            min-width: 180px;
+            text-align: center;
+            border: 1px solid #000000;
+        }
+        .slab h3 {
+            margin: 0 0 12px 0;
+            color: #000000;
+            font-size: 18px;
+        }
+        .result {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            border: 1px solid #000000;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 20px;
+            color: #000000;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .averages {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #000000;
+        }
+        .averages h3 {
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        .error {
+            color: #ff0000;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #000000;
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            .slabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PowerSlab Calculate Bill 🍂🍁</h1>
+        <div class="input-group">
+            <label for="units">Total Units Consumed (0-1000):</label>
+            <input type="number" id="units" min="0" max="1000" placeholder="Enter units" oninput="updateSlabs()">
+        </div>
+        <div class="input-group">
+            <label for="days">Number of Days in Billing Period (for averages):</label>
+            <input type="number" id="days" min="1" placeholder="e.g., 30">
+        </div>
+        <div class="slabs">
+            <div class="slab" id="slab1">
+                <h3>Slab 1 (0-200 units)</h3>
+                <label for="rate1">Price per Unit:</label>
+                <input type="number" id="rate1" min="0" step="0.01" value="2.30" placeholder="e.g., 2.30">
+            </div>
+            <div class="slab" id="slab2" style="display: none;">
+                <h3>Slab 2 (201-400 units)</h3>
+                <label for="rate2">Price per Unit:</label>
+                <input type="number" id="rate2" min="0" step="0.01" value="4.00" placeholder="e.g., 4.00">
+            </div>
+            <div class="slab" id="slab3" style="display: none;">
+                <h3>Slab 3 (401-600 units)</h3>
+                <label for="rate3">Price per Unit:</label>
+                <input type="number" id="rate3" min="0" step="0.01" value="4.35" placeholder="e.g., 4.35">
+            </div>
+            <div class="slab" id="slab4" style="display: none;">
+                <h3>Slab 4 (601-800 units)</h3>
+                <label for="rate4">Price per Unit:</label>
+                <input type="number" id="rate4" min="0" step="0.01" value="4.35" placeholder="e.g., 4.35">
+            </div>
+            <div class="slab" id="slab5" style="display: none;">
+                <h3>Slab 5 (801-1000 units)</h3>
+                <label for="rate5">Price per Unit:</label>
+                <input type="number" id="rate5" min="0" step="0.01" value="4.35" placeholder="e.g., 4.35">
+            </div>
+        </div>
+        <div class="buttons">
+            <button class="calculate" onclick="calculateBill()">Calculate Bill</button>
+            <button class="reset" onclick="resetForm()">Reset</button>
+        </div>
+        <div id="result" class="result" style="display: none;">
+            <h2>Bill Breakdown</h2>
+            <div id="breakdown"></div>
+            <div class="total" id="total"></div>
+            <div class="averages" id="averages" style="display: none;">
+                <h3>Averages</h3>
+                <div id="avgBreakdown"></div>
+            </div>
+        </div>
+        <div id="error" class="error"></div>
+    </div>
+    <div class="footer">
+        Developed by Furqaan Nazir
+    </div>
+
+    <script>
+        function updateSlabs() {
+            const units = parseFloat(document.getElementById('units').value);
+            document.getElementById('slab1').style.display = 'block';
+            document.getElementById('slab2').style.display = units > 200 ? 'block' : 'none';
+            document.getElementById('slab3').style.display = units > 400 ? 'block' : 'none';
+            document.getElementById('slab4').style.display = units > 600 ? 'block' : 'none';
+            document.getElementById('slab5').style.display = units > 800 ? 'block' : 'none';
+        }
+
+        function calculateBill() {
+            const units = parseFloat(document.getElementById('units').value);
+            const days = parseFloat(document.getElementById('days').value);
+            const rate1 = parseFloat(document.getElementById('rate1').value);
+            const rate2 = parseFloat(document.getElementById('rate2').value);
+            const rate3 = parseFloat(document.getElementById('rate3').value);
+            const rate4 = parseFloat(document.getElementById('rate4').value);
+            const rate5 = parseFloat(document.getElementById('rate5').value);
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+            const breakdownDiv = document.getElementById('breakdown');
+            const totalDiv = document.getElementById('total');
+            const averagesDiv = document.getElementById('averages');
+            const avgBreakdownDiv = document.getElementById('avgBreakdown');
+
+            errorDiv.textContent = '';
+            resultDiv.style.display = 'none';
+            averagesDiv.style.display = 'none';
+
+            // Validation
+            if (isNaN(units) || units < 0 || units > 1000) {
+                errorDiv.textContent = 'Please enter a valid number of units between 0 and 1000.';
+                return;
+            }
+            if (isNaN(rate1) || rate1 < 0 || isNaN(rate2) || rate2 < 0 || isNaN(rate3) || rate3 < 0 || isNaN(rate4) || rate4 < 0 || isNaN(rate5) || rate5 < 0) {
+                errorDiv.textContent = 'Please enter valid positive rates for all slabs.';
+                return;
+            }
+
+            // Calculation
+            let cost1 = 0, cost2 = 0, cost3 = 0, cost4 = 0, cost5 = 0;
+            let units1 = 0, units2 = 0, units3 = 0, units4 = 0, units5 = 0;
+            let total = 0;
+
+            if (units <= 200) {
+                units1 = units;
+                cost1 = units1 * rate1;
+                total = cost1;
+            } else if (units <= 400) {
+                units1 = 200;
+                cost1 = 200 * rate1;
+                units2 = units - 200;
+                cost2 = units2 * rate2;
+                total = cost1 + cost2;
+            } else if (units <= 600) {
+                units1 = 200;
+                cost1 = 200 * rate1;
+                units2 = 200;
+                cost2 = 200 * rate2;
+                units3 = units - 400;
+                cost3 = units3 * rate3;
+                total = cost1 + cost2 + cost3;
+            } else if (units <= 800) {
+                units1 = 200;
+                cost1 = 200 * rate1;
+                units2 = 200;
+                cost2 = 200 * rate2;
+                units3 = 200;
+                cost3 = 200 * rate3;
+                units4 = units - 600;
+                cost4 = units4 * rate4;
+                total = cost1 + cost2 + cost3 + cost4;
+            } else {
+                units1 = 200;
+                cost1 = 200 * rate1;
+                units2 = 200;
+                cost2 = 200 * rate2;
+                units3 = 200;
+                cost3 = 200 * rate3;
+                units4 = 200;
+                cost4 = 200 * rate4;
+                units5 = units - 800;
+                cost5 = units5 * rate5;
+                total = cost1 + cost2 + cost3 + cost4 + cost5;
+            }
+
+            // Display breakdown
+            breakdownDiv.innerHTML = `
+                <p>Slab 1: ${units1} units @ ${rate1.toFixed(2)} = $${cost1.toFixed(2)}</p>
+                <p>Slab 2: ${units2} units @ ${rate2.toFixed(2)} = $${cost2.toFixed(2)}</p>
+                <p>Slab 3: ${units3} units @ ${rate3.toFixed(2)} = $${cost3.toFixed(2)}</p>
+                <p>Slab 4: ${units4} units @ ${rate4.toFixed(2)} = $${cost4.toFixed(2)}</p>
+                <p>Slab 5: ${units5} units @ ${rate5.toFixed(2)} = $${cost5.toFixed(2)}</p>
+            `;
+            totalDiv.textContent = `Total Bill: $${total.toFixed(2)}`;
+            resultDiv.style.display = 'block';
+
+            // Averages
+            if (!isNaN(days) && days > 0) {
+                const avgUnitsPerDay = units / days;
+                const avgCostPerDay = total / days;
+                const avgUnitsPerHour = avgUnitsPerDay / 24;
+                const avgCostPerHour = avgCostPerDay / 24;
+                avgBreakdownDiv.innerHTML = `
+                    <p>Average Units per Day: ${avgUnitsPerDay.toFixed(2)}</p>
+                    <p>Average Cost per Day: $${avgCostPerDay.toFixed(2)}</p>
+                    <p>Average Units per Hour: ${avgUnitsPerHour.toFixed(2)}</p>
+                    <p>Average Cost per Hour: $${avgCostPerHour.toFixed(2)}</p>
+                `;
+                averagesDiv.style.display = 'block';
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('units').value = '';
+            document.getElementById('days').value = '';
+            document.getElementById('rate1').value = '2.30';
+            document.getElementById('rate2').value = '4.00';
+            document.getElementById('rate3').value = '4.35';
+            document.getElementById('rate4').value = '4.35';
+            document.getElementById('rate5').value = '4.35';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').textContent = '';
+            updateSlabs(); // Reset slabs visibility
+        }
+    </script>
+</body>
+</html>
